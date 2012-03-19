@@ -16,16 +16,19 @@ class FeatVectors:
     def get_file(self):
         return self.FILE
 
-    def map_file(self, inputfile):
+    def map_file(self, file_lines):
         """
         Takes a file object and maps out each individual line in
         the file to the map format. 
 
         returns an array of dictionarys containing each line object
+
+        param file_words: A file object or list of strings with lines of the format
+            "word.pos t0 t1 ... tk @ context @ target @ context" to be mapped
         """
         file_map = []
 
-        for line in inputfile:
+        for line in file_lines:
             file_map.append(self.map_line(line))
 
         return file_map
@@ -36,6 +39,8 @@ class FeatVectors:
         given the format "word.pos t0 t1 ... tk @ context @ target @ context"
         
         returns a dictionary containing those individual elements
+
+        param line: An individual line containing WSD information
         """
         line_map = {}
 
@@ -54,6 +59,11 @@ class FeatVectors:
         in the context
 
         returns a string of space separated collocations.
+
+        param
+        context: The context string surrounding the target word
+        dist: The number of words leading and trailing to base
+            collocations off of
         """
         word_list = context.split(' ')
         pattern = re.compile('(@?[a-zA-Z]+@)')
@@ -68,13 +78,16 @@ class FeatVectors:
         # Need to fix the possibility of reverting to the 
         # end of the list if the word appears at the
         # beginning
-
+        if()
         return " ".join(word_list[i-dist : i+dist])
 
     def map_coll(self, coll):
         """
         Takes the collocation string and maps the selected term to
         indexed numbers that are unique for each word type
+
+        param coll: The collocations string with words separated
+            by spaces
         """
         words = coll.split()
         nums = []
@@ -84,16 +97,23 @@ class FeatVectors:
 
         return " ".join(nums)
 
-    def find_word_lines(self, word_input, word):
+    def find_word_lines(self, file_lines, word):
         """
         Finds all the lines in a given file object that start with 
         the supplied word returns a list containing those lines
 
         returns a list of strings containing the word sense information
+
+        param 
+        file_lines: A file or list of strings to fetch the congruent 
+            word information from 
+
+        word: The word and part of speach to search and build the list 
+            on. Format as <word>.pos, e.g. begin.v
         """
         lines = []
 
-        for line in word_input:
+        for line in file_lines:
             if line.startswith(word):
                 lines.append(line)
 
@@ -107,6 +127,10 @@ class FeatVectors:
 
         Returns an array of dictionaries containing the sense information
         for the given word
+
+        param
+        word: The word and part of speach to search and build the list 
+            on. Format as <word>.pos, e.g. begin.v
         """
         wFile = self.find_word_lines(self.get_file(), word)
         wMap = self.map_file(wFile)

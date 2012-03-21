@@ -75,9 +75,8 @@ class FeatVectors:
                 break
             i += 1
 
-        # Need to fix the possibility of reverting to the 
-        # end of the list if the word appears at the
-        # beginning
+        # Check to see if the collocation distance extends beyond the
+        # size of the word list
         listlen = len(word_list)
         if i < left:
             left = i

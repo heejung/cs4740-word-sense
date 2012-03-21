@@ -1,5 +1,4 @@
-import nltk
-import re
+#import nltk
 import WordMap
 
 class FeatVectors:
@@ -23,7 +22,7 @@ class FeatVectors:
 
         returns an array of dictionarys containing each line object
 
-        param file_words: A file object or list of strings with lines of the format
+        param file_lines: A file object or list of strings with lines of the format
             "word.pos t0 t1 ... tk @ context @ target @ context" to be mapped
         """
         file_map = []
@@ -66,11 +65,12 @@ class FeatVectors:
             collocations off of
         """
         word_list = context.split(' ')
-        pattern = re.compile('(@?[a-zA-Z]+@)')
+
+        left = right = dist
 
         i = 0
         for word in word_list:
-            if pattern.match(word):
+            if word[0] == '@' and word[-1] == '@':
                 word_list.pop(i)
                 break
             i += 1
@@ -78,8 +78,16 @@ class FeatVectors:
         # Need to fix the possibility of reverting to the 
         # end of the list if the word appears at the
         # beginning
-        if()
-        return " ".join(word_list[i-dist : i+dist])
+        listlen = len(word_list)
+        if i < left:
+            left = i
+            right = dist + i if not (dist + i) > listlen else listlen - i
+        if i + right > listlen:
+            diff = listlen - i
+            right = diff
+            left = left + diff if not (left + diff) > i else i
+
+        return " ".join(word_list[i-left : i+right])
 
     def map_coll(self, coll):
         """

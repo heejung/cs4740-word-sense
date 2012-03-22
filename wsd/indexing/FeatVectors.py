@@ -184,6 +184,8 @@ class FeatVectors:
         coll_dist: The number of previous and post collocated words 
             to get when looking at the context of a word. 
         """
+        import datautil
+
         self.coll_dist = coll_dist
         
         word_lines = self.find_word_lines(open(fileinput), word)
@@ -276,5 +278,3 @@ class FeatVectors:
                 senses.append(str(i + 1))
 
         return senses
-
-

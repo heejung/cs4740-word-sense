@@ -1,4 +1,3 @@
-i
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -9,7 +8,7 @@ import java.io.PrintWriter;
 import java.io.FileWriter;
 
 class Util {
-    public static Instances getData(string dataFile) throws Exception {
+    public static Instances getData(String dataFile) throws Exception {
         /*
          * Reads from ARFF file.
          *
@@ -61,13 +60,13 @@ class Train {
          * Needs to re-implement this so that instead of supplying 
          * actual instance of classifier, a string name would suffice.
          */
-
-        classifier.setOptions(weka.core.Utils.splitOptions(options));
+        
+        ((J48) classifier).setOptions(weka.core.Utils.splitOptions(options));
         classifier.buildClassifier(this.trainInstances);
         this.classifier = classifier;
     }
 
-    public void buildClassifier() {
+    public void buildClassifier() throws Exception {
 
         /*
          * Default classifier with J48() tree.
@@ -109,14 +108,14 @@ class Evaluate {
          * in the Tran class.
          */
         Classifier cls = (Classifier) weka.core.SerializationHelper.read(
-                serialized);
+                serializedOutput);
 
         this.classifier = cls;
  
     }
 
     public void setDataInstances(String filename) throws Exception {
-        this.trainInstances = Util.getData(filename);
+        this.testInstances = Util.getData(filename);
     }
 
     public void evaluateData(String outputPath) throws Exception {
@@ -134,9 +133,9 @@ class Evaluate {
         try {
             outputStream = new PrintWriter(new FileWriter(outputPath));
 
-            for (int i = 0; i < testInstances.numInstances; i++) {
+            for (int i = 0; i < testInstances.numInstances(); i++) {
                 double classLabel = this.classifier.classifyInstance(
-                        this.testInstances.instance(i))
+                        this.testInstances.instance(i));
 
                 outputStream.println(classLabel);
             }

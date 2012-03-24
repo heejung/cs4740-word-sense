@@ -2,15 +2,16 @@ import WordMap
 import pickle
 import re
 
+
 class FeatVectors:
 
-    def __init__(self, inputfile = ""):
+    def __init__(self, inputfile="../../data/wordmap.pkl"):
         try:
-            self.word_map = pickle.load(open("../../data/wordmap.pkl"))
+            self.word_map = pickle.load(open(inputfile))
         except EOFError:
             self.word_map = WordMap.WordMap()
 
-    def open_file(self, file_name = "../Data/practice.data.txt"):
+    def open_file(self, file_name="../Data/practice.data.txt"):
         self.FILE = open(file_name)
 
     def get_file(self):
@@ -20,16 +21,16 @@ class FeatVectors:
         """
         Writes the current wordmap to a pickle file for future use
         """
-        pickle.dump(self.word_map, open("../../data/wordmap.pkl","w"))
+        pickle.dump(self.word_map, open("../../data/wordmap.pkl", "w"))
 
     def map_file(self, file_lines):
         """
         Takes a file object and maps out each individual line in
-        the file to the map format. 
+        the file to the map format.
 
         returns an array of dictionarys containing each line object
 
-        param 
+        param
         -----
         file_lines: A file object or list of strings with lines of the format
             "word.pos t0 t1 ... tk @ context @ target @ context" to be mapped
@@ -43,12 +44,12 @@ class FeatVectors:
 
     def map_line(self, line):
         """
-        Takes an individual line and parse out the components of the line 
+        Takes an individual line and parse out the components of the line
         given the format "word.pos t0 t1 ... tk @ context @ target @ context"
-        
+
         returns a dictionary containing those individual elements
 
-        param 
+        param
         -----
         line: An individual line containing WSD information
         """
@@ -79,7 +80,7 @@ class FeatVectors:
         if self.coll_dist:
             dist = self.coll_dist
 
-        word_list = context.split(' ')
+        word_list = context.strip().split(' ')
         
         left = right = dist
 
@@ -97,9 +98,9 @@ class FeatVectors:
         # size of the word list
         # Should we handle them like this or replacing empty spaces with 0s
         listlen = len(word_list)
-        if i < left:
-            left = i
-            right = right + i if not (right + i) > listlen else listlen - i
+        if i < left: # i = 1 left = 2
+            left = left - i  
+            right = right + left #if not (right + left) > listlen else listlen - i
         if i + right > listlen:
             diff = listlen - i
             right = diff
@@ -199,20 +200,23 @@ class FeatVectors:
         feature_count = coll_dist * 2
         class_count = len(fmap[0]['sense'].strip().split(" "))
 
-        file_lines = []
-
-        file_lines = self.format_headers(file_lines, feature_count, class_count)
+        file_lines = self.format_headers( feature_count, class_count)
         
+        i = 0
         for item in fmap:
             file_lines.append(self.format_line(item))
+            i += 1
 
+        i = 0
         for line in file_lines:
             fileoutput.write(line.lstrip())
+            i += 1
+
         
         self.write_map()
 
 
-    def format_headers(self, file_list, feature_count, class_count):
+    def format_headers(self, feature_count, class_count):
         """
         Formats the headers of the list to be written to the output
         file that will be converted to an arff file by the datautil.py
@@ -228,6 +232,8 @@ class FeatVectors:
         class_count: the number of possible classes for the word, i.e. 
             the number of possible senses for a word. 
         """
+        file_list = []
+
         file_list.append("# Feature Count\n")
         file_list.append(str(feature_count) + "\n")
         file_list.append("# Class Count \n")
@@ -276,5 +282,8 @@ class FeatVectors:
         for i in range(len(sense_list)):
             if sense_list[i] == "1":
                 senses.append(str(i + 1))
+
+        if len(senses) == 0:
+            senses.append("0")
 
         return senses

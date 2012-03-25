@@ -311,14 +311,14 @@ class FeatVectors:
         doc_size = 0
 
         for line_map in file_map:
-        context = line_map['context']
+            context = line_map['context']
             word_list = context.strip().lower().split(' ')
-        for word in word_list:
-            if word_counts.has_key(word):
-            word_counts[word] = word_counts[word] + 1
-        else:
-            word_counts[word] = 1
-        doc_size = doc_size + 1
+            for word in word_list:
+                if word_counts.has_key(word):
+                    word_counts[word] = word_counts[word] + 1
+                else:
+                    word_counts[word] = 1
+            doc_size = doc_size + 1
 
         stop_words = {}
         words = word_counts.keys()
@@ -326,7 +326,7 @@ class FeatVectors:
 
         for word in words:
             if word_counts[word] >= sigma:
-            stop_words[word] = 1
+                stop_words[word] = 1
 
         return stop_words
 
@@ -350,7 +350,7 @@ class FeatVectors:
         file_map_stripped = []
 
         for line_map in file_map:
-        if not stop_words.has_key(line_map['word']):
+            if not stop_words.has_key(line_map['word']):
                 file_map_stripped.append(self.strip_line_map(line_map, stop_words))
 
         return file_map_stripped
@@ -385,8 +385,8 @@ class FeatVectors:
         context: A string
         stop_words: A dictionary containing stop words
         """
-            stripped_word_list = []
-            word_list = context.strip().split(' ')
+        stripped_word_list = []
+        word_list = context.strip().split(' ')
 
         for word in word_list:
             if not stop_words.has_key(word):

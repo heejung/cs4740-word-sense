@@ -5,7 +5,7 @@ import re
 
 class FeatVectors:
 
-    def __init__(self, inputfile="wordmap.pkl"):
+    def __init__(self, inputfile="../../data/wordmap.pkl"):
         try:
             self.word_map = pickle.load(open(inputfile))
         except EOFError:
@@ -21,7 +21,7 @@ class FeatVectors:
         """
         Writes the current wordmap to a pickle file for future use
         """
-        pickle.dump(self.word_map, open("wordmap.pkl", "w"))
+        pickle.dump(self.word_map, open("../../data/wordmap.pkl", "w"))
 
     def map_file(self, file_lines):
         """
@@ -41,109 +41,6 @@ class FeatVectors:
             file_map.append(self.map_line(line))
 
         return file_map
-
-    def create_stop_words(self, file_map):
-        """
-	Takes a file map list object and creates stop words from the word
-	frequency. Stop words are those whose term frequency is greater than
-	0.4% (1/230) of the entire document. The constant 230 was chosen
-	by manually trying out on the given training data set for the project.
-
-	returns a hashtable whose keys are stop words
-
-	param
-	_____
-	file_map: A list object created from self.map_file(...) which consists
-	    of line map dictionary objects. Each line map dictionary object
-	    should containt at least the key 'context' whose value is a string
-	"""
-    	word_counts = {}
-	doc_size = 0
-
-        for line_map in file_map:
-	    context = line_map['context']
-            word_list = context.strip().lower().split(' ')
-	    for word in word_list:
-	        if word_counts.has_key(word):
-		    word_counts[word] = word_counts[word] + 1
-		else:
-		    word_counts[word] = 1
-		doc_size = doc_size + 1
-
-	stop_words = {}
-	words = word_counts.keys()
-	sigma = doc_size / 230
-
-	for word in words:
-            if word_counts[word] >= sigma:
-	        stop_words[word] = 1
-
-        return stop_words
-
-    def strip_file_map(self, file_map):
-        """
-	Takes a file map list object and eliminate stop words and any token that
-	contains a non-alpha-numeric character such as (, ), ', etc except @.
-	In our training data, the character @ is used to indicate the important
-	words to be disambiguated thus critical to be kept in our file map object.
-
-	returns a file map object stripped of trivial tokens and words
-
-	param
-	-----
-	file_map: A list object created from self.map_file(...) which consists
-	    of line map dictionary objects. Each line map dictionary object
-	    should containt at least the key 'context' whose value is a string
-	"""
-	stop_words = self.create_stop_words(file_map)
-
-        file_map_stripped = []
-
-        for line_map in file_map:
-	    if not stop_words.has_key(line_map['word']):
-                file_map_stripped.append(self.strip_line_map(line_map, stop_words))
-
-        return file_map_stripped
-
-    def strip_line_map(self, line_map, stop_words):
-        """
-	Takes a line map object and a stop words object to strip the line map object
-	of the stop words and any non-alpha-numeric tokens besides the tokens that
-	contains '@', a special indicator for an important word.
-
-	returns a line map stripped of trivial tokens and words
-
-	param
-	-----
-	line_map: A dictionary containing WSD information such as word, pos, sense,
-	    context, coll, and coll_map
-	stop_words: A dictionary containing stop words
-	"""
-        context = line_map['context']
-        line_map['context_stripped'] = context_stripped = self.strip_context(context, stop_words)
-        line_map['coll_map_stripped'] = self.map_coll(self.find_coll(context_stripped))
-
-        return line_map
-
-    def strip_context(self, context, stop_words):
-        """
-	Takes a context string and remove stop words and trivial non-alpha-numeric
-	tokens from it.
-
-	returns a modified context string stripped of trivial tokens
-	-----
-	context: A string
-	stop_words: A dictionary containing stop words
-	"""
-        stripped_word_list = []
-        word_list = context.strip().split(' ')
-
-	for word in word_list:
-	    if not stop_words.has_key(word):
-	        if word.isalnum() or '@' in word:
-	            stripped_word_list.append(word)
-
-	return ' '.join(stripped_word_list)
 
     def map_line(self, line):
         """
@@ -184,14 +81,11 @@ class FeatVectors:
             dist = self.coll_dist
 
         word_list = context.strip().split(' ')
-        
         left = right = dist
-
         pattern = re.compile('(@?[a-zA-Z]+@)')
 
         i = 0
         for word in word_list:
-            #if word[0] == '@' and word[len(word)] == '@':
             if pattern.match(word):
                 word_list.pop(i)
                 break
@@ -201,15 +95,22 @@ class FeatVectors:
         # size of the word list
         # Should we handle them like this or replacing empty spaces with 0s
         listlen = len(word_list)
-        if i < left: # i = 1 left = 2
-            left = left - i  
-            right = right + left #if not (right + left) > listlen else listlen - i
+        if i < left: 
+            right = right + (left - i)
+            left = i
         if i + right > listlen:
             diff = listlen - i
+            l_change = left + (right-diff)
+            left = l_change if not l_change > i else i
             right = diff
-            left = left + diff if not (left + diff) > i else i
 
-        return " ".join(word_list[i-left : i+right])
+        coll_words = word_list[i-left:i+right]
+
+        if len(coll_words) < dist*2:
+            while len(coll_words) < dist*2:
+                coll_words.append("0")
+        
+        return " ".join(coll_words)
 
     def map_coll(self, coll):
         """
@@ -296,7 +197,6 @@ class FeatVectors:
         fileoutput = open(fileoutput, 'w')
 
         fmap = self.map_file(word_lines)
-	fmap = self.strip_file_map(fmap)
         
         if len(fmap) == 0:
             exit("No lines were found for that word")
@@ -364,7 +264,6 @@ class FeatVectors:
             # We don't need the word at the beginning of the line
             # at the moment
             #line.append(line_map['word'] + "." + line_map['pos'])
-        #    line.append(line_map['coll_map_stripped'])
             line.append(line_map['coll_map'])
             line.append(sense)
             line.append("\n")
@@ -392,3 +291,106 @@ class FeatVectors:
             senses.append("0")
 
         return senses
+
+    def create_stop_words(self, file_map):
+        """
+        Takes a file map list object and creates stop words from the word
+        frequency. Stop words are those whose term frequency is greater than
+        0.4% (1/230) of the entire document. The constant 230 was chosen
+        by manually trying out on the given training data set for the project.
+
+        returns a hashtable whose keys are stop words
+
+        param
+        _____
+        file_map: A list object created from self.map_file(...) which consists
+            of line map dictionary objects. Each line map dictionary object
+            should containt at least the key 'context' whose value is a string
+        """
+        word_counts = {}
+        doc_size = 0
+
+        for line_map in file_map:
+        context = line_map['context']
+            word_list = context.strip().lower().split(' ')
+        for word in word_list:
+            if word_counts.has_key(word):
+            word_counts[word] = word_counts[word] + 1
+        else:
+            word_counts[word] = 1
+        doc_size = doc_size + 1
+
+        stop_words = {}
+        words = word_counts.keys()
+        sigma = doc_size / 230
+
+        for word in words:
+            if word_counts[word] >= sigma:
+            stop_words[word] = 1
+
+        return stop_words
+
+    def strip_file_map(self, file_map):
+        """
+        Takes a file map list object and eliminate stop words and any token that
+        contains a non-alpha-numeric character such as (, ), ', etc except @.
+        In our training data, the character @ is used to indicate the important
+        words to be disambiguated thus critical to be kept in our file map object.
+
+        returns a file map object stripped of trivial tokens and words
+
+        param
+        -----
+        file_map: A list object created from self.map_file(...) which consists
+            of line map dictionary objects. Each line map dictionary object
+            should containt at least the key 'context' whose value is a string
+        """
+        stop_words = self.create_stop_words(file_map)
+
+        file_map_stripped = []
+
+        for line_map in file_map:
+        if not stop_words.has_key(line_map['word']):
+                file_map_stripped.append(self.strip_line_map(line_map, stop_words))
+
+        return file_map_stripped
+
+    def strip_line_map(self, line_map, stop_words):
+        """
+        Takes a line map object and a stop words object to strip the line map object
+        of the stop words and any non-alpha-numeric tokens besides the tokens that
+        contains '@', a special indicator for an important word.
+
+        returns a line map stripped of trivial tokens and words
+
+        param
+        -----
+        line_map: A dictionary containing WSD information such as word, pos, sense,
+            context, coll, and coll_map
+        stop_words: A dictionary containing stop words
+        """
+        context = line_map['context']
+        line_map['context_stripped'] = context_stripped = self.strip_context(context, stop_words)
+        line_map['coll_map_stripped'] = self.map_coll(self.find_coll(context_stripped))
+
+        return line_map
+
+    def strip_context(self, context, stop_words):
+        """
+        Takes a context string and remove stop words and trivial non-alpha-numeric
+        tokens from it.
+
+        returns a modified context string stripped of trivial tokens
+        -----
+        context: A string
+        stop_words: A dictionary containing stop words
+        """
+            stripped_word_list = []
+            word_list = context.strip().split(' ')
+
+        for word in word_list:
+            if not stop_words.has_key(word):
+                if word.isalnum() or '@' in word:
+                    stripped_word_list.append(word)
+
+        return ' '.join(stripped_word_list)

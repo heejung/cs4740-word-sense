@@ -58,8 +58,12 @@ class FeatVectors:
         line_map['word']     = line[0 : line.find('.')]
         line_map['pos']      = line[line.find('.') + 1 : line.find(' ')]
         line_map['sense']    = line[line.find(" ") + 1 : line.find("@")]
-        line_map['context']  = context = line[line.find("@") + 1:]
-        line_map['coll']     = coll = self.find_coll(context)
+
+        context = line[line.find("@") + 1:]
+        line_map['context']  = context
+        coll = self.find_coll(context)
+        line_map['coll']     =  coll
+
         line_map['coll_map'] = self.map_coll(coll)
 
         return line_map
@@ -373,7 +377,9 @@ class FeatVectors:
         stop_words: A dictionary containing stop words
         """
         context = line_map['context']
-        line_map['context_stripped'] = context_stripped = self.strip_context(context, stop_words)
+
+        context_stripped = self.strip_context(context, stop_words)
+        line_map['context_stripped'] = context_stripped
         line_map['coll_map_stripped'] = self.map_coll(self.find_coll(context_stripped))
 
         return line_map

@@ -2,26 +2,26 @@ import WordMap
 import pickle
 import re
 
-
 class FeatVectors:
 
-    def __init__(self, inputfile="../../data/wordmap.pkl"):
+    def __init__(self, inputfile):
         try:
             self.word_map = pickle.load(open(inputfile))
         except EOFError:
             self.word_map = WordMap.WordMap()
 
-    def open_file(self, file_name="../Data/practice.data.txt"):
+    def open_file(self, file_name):
         self.FILE = open(file_name)
 
     def get_file(self):
         return self.FILE
 
-    def write_map(self):
+    def write_map(self, pkl_file):
         """
-        Writes the current wordmap to a pickle file for future use
+        Writes the current wordmap to a pickle file for future use.
+        Needs to have a pickle file available to it
         """
-        pickle.dump(self.word_map, open("../../data/wordmap.pkl", "w"))
+        pickle.dump(self.word_map, open(pkl_file, "w"))
 
     def map_file(self, file_lines):
         """
@@ -197,6 +197,9 @@ class FeatVectors:
         fileoutput = open(fileoutput, 'w')
 
         fmap = self.map_file(word_lines)
+
+        # Adding Hee's strip file code
+        fmap = self.strip_file_map(fmap)
         
         if len(fmap) == 0:
             exit("No lines were found for that word")
@@ -322,10 +325,10 @@ class FeatVectors:
 
         stop_words = {}
         words = word_counts.keys()
-        sigma = doc_size / 230
+        sigma = float(doc_size) * (float(2)/float(3))
 
         for word in words:
-            if word_counts[word] >= sigma:
+            if float(word_counts[word]) >= sigma:
                 stop_words[word] = 1
 
         return stop_words

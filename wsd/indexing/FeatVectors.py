@@ -329,7 +329,7 @@ class FeatVectors:
 
         stop_words = {}
         words = word_counts.keys()
-        sigma = float(doc_size) * (float(2)/float(3))
+        sigma = doc_size * 2./3
 
         for word in words:
             if float(word_counts[word]) >= sigma:

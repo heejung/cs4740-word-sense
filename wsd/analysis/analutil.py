@@ -48,5 +48,3 @@ def rank_attr_by_info_gain(fileinput, fileoutput, numattr):
     """
     cmmd = 'java -cp ' + CP + ' weka.filters.supervised.attribute.AttributeSelection -S \"weka.attributeSelection.Ranker -N ' + str(numattr) + '\" -E \"weka.attributeSelection.InfoGainAttributeEval\" -i ' + fileinput + ' -o ' + fileoutput + ' -c last'
     os.system(cmmd)
-
-rank_attr_by_info_gain('test.arff', 'out.arff', 3)

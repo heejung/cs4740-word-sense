@@ -1,5 +1,7 @@
 import os
 
+CP = '.:../learning/lib/weka.jar' 
+
 def rank_attr_by_info_gain(fileinput, fileoutput, numattr):
     """
     Takes in an arff file input containing a bag-of-word attr information and
@@ -44,5 +46,5 @@ def rank_attr_by_info_gain(fileinput, fileoutput, numattr):
     -0.168,1.627,-0.67,begin.v
     -0.265,1.933,-0.694,begin.n
     """
-    cmmd = 'java weka.filters.AttributeSelectionFilter -S \"weka.attributeSelection.Ranker -N ' + str(numattr) + '\" -E \"weka.attributeSelection.InfoGainAttributeEval\" -i ' + fileinput + ' -o ' + fileoutput + ' -c last'
+    cmmd = 'java -cp ' + CP + ' weka.filters.AttributeSelectionFilter -S \"weka.attributeSelection.Ranker -N ' + str(numattr) + '\" -E \"weka.attributeSelection.InfoGainAttributeEval\" -i ' + fileinput + ' -o ' + fileoutput + ' -c last'
     os.system(cmmd)
